@@ -1,0 +1,220 @@
+# =========================
+
+# Python bytecode & caches (ALL PROJECTS)
+
+# =========================
+
+**pycache**/
+**/**pycache**/
+*.py[cod]
+*$py.class
+
+# =========================
+
+# Virtual environments (any depth)
+
+# =========================
+
+.venv/
+**/.venv/
+venv/
+**/venv/
+env/
+**/env/
+
+# uv-specific cache
+
+.uv/
+**/.uv/
+.uv-cache/
+**/.uv-cache/
+
+# =========================
+
+# Distribution / packaging
+
+# =========================
+
+build/
+**/build/
+dist/
+**/dist/
+*.egg-info/
+**/*.egg-info/
+.eggs/
+**/.eggs/
+*.egg
+pip-wheel-metadata/
+
+# =========================
+
+# Test / coverage (all projects)
+
+# =========================
+
+htmlcov/
+**/htmlcov/
+.tox/
+**/.tox/
+.nox/
+**/.nox/
+.coverage
+.coverage.*
+.cache/
+**/.cache/
+pytest_cache/
+**/pytest_cache/
+coverage.xml
+nosetests.xml
+*.cover
+*.py,cover
+.hypothesis/
+**/.hypothesis/
+
+# =========================
+
+# Type checkers / linters
+
+# =========================
+
+.mypy_cache/
+**/.mypy_cache/
+.pyre/
+.pytype/
+.dmypy.json
+.ruff_cache/
+**/.ruff_cache/
+
+# =========================
+
+# Jupyter
+
+# =========================
+
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# =========================
+
+# Logs
+
+# =========================
+
+*.log
+**/*.log
+
+# =========================
+
+# Environment variables
+
+# =========================
+
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+
+# =========================
+
+# IDE / Editors
+
+# =========================
+
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+
+*.sublime-project
+*.sublime-workspace
+
+*.swp
+*.swo
+*~
+
+# =========================
+
+# OS files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# Temporary files
+
+# =========================
+
+tmp/
+**/tmp/
+temp/
+**/temp/
+*.tmp
+
+# =========================
+
+# Monorepo-wide artifacts
+
+# =========================
+
+data/
+**/data/
+artifacts/
+**/artifacts/
+outputs/
+**/outputs/
+
+# =========================
+
+# ML / large files (optional)
+
+# =========================
+
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.parquet
+*.h5
+
+# =========================
+
+# Databases (optional)
+
+# =========================
+
+*.sqlite3
+*.db
+
+# =========================
+
+# Docker / runtime
+
+# =========================
+
+*.pid
+*.seed
+
+# =========================
+
+# uv lock files (IMPORTANT)
+
+# =========================
+
+# Keep lock files for reproducibility across all sub-projects
+
+# DO NOT IGNORE:
+
+# **/uv.lock
+
+# =========================
+
+# Misc
+
+# =========================
+
+*.bak
+*.orig

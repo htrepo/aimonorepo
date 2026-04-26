@@ -1,0 +1,22 @@
+[project]
+name = "tokenizersprj"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "huggingface-hub",
+    "transformers>=4.43.0",
+    "python-dotenv",
+    "IPython",
+    "ipykernel",
+    "torch"
+]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cuda" }
