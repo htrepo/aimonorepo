@@ -10,7 +10,9 @@ dependencies = [
     "python-dotenv",
     "IPython",
     "ipykernel",
-    "torch"
+    "torch>=2.0.0",
+    "accelerate>=0.24.1",
+    "bitsandbytes>=0.41.3"
 ]
 
 [[tool.uv.index]]
