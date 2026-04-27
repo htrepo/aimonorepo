@@ -79,6 +79,11 @@ def main():
     print(f"\nDecoded with EOT: {test_decoded}")
     print(f"Matches original: {test_decoded == sample_text}")
 
+    # vocab
+    print("\nPrinting length of tokenizer vocab")
+    print(tokenizer_llama.vocab_size)
+    
+
     print("\nDone!")
 
 if __name__ == "__main__":
