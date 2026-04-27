@@ -1,17 +1,10 @@
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, TextStreamer, BitsAndBytesConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # Model name from Hugging Face
-MODEL_NAME = "Qwen/Qwen2.5-Coder-7B-Instruct"
+MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"
 
 def main():
-    # Configure quantization for running 7B models locally on consumer GPUs
-    quant_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.float16,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_use_double_quant=True,
-    )
 
     print(f"Loading tokenizer: {MODEL_NAME}")
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -24,7 +17,6 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_NAME, 
         device_map="auto", 
-        quantization_config=quant_config,
         torch_dtype=torch.float16
     )
 
@@ -43,22 +35,24 @@ def main():
         add_generation_prompt=True
     ).to("cuda")
 
-    # Set up the streamer to yield text tokens as they are generated
-    # Using skip_prompt=True so we only see the newly generated response
-    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-
     print("\n--- Generating Response ---\n")
-    # Generate the output iteratively passing through the streamer
+    # Generate the output
     outputs = model.generate(
         **inputs, 
         max_new_tokens=2000, 
-        streamer=streamer,
         pad_token_id=tokenizer.eos_token_id,
         temperature=0.7,
         top_p=0.9,
         do_sample=True
     )
+
+    # Decode and print the generated text (excluding the prompt)
+    generated_ids = outputs[0][inputs['input_ids'].shape[-1]:]
+    response = tokenizer.decode(generated_ids, skip_special_tokens=True)
+    print(response)
     print("\n---------------------------\n")
 
 if __name__ == "__main__":
     main()
+
+
