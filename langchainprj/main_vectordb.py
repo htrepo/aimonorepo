@@ -1,18 +1,19 @@
-from langchain_community.document_loaders import PyPDFLoader
 import numpy as np
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from sklearn.manifold import TSNE
-from sklearn.metrics.pairwise import cosine_similarity
 import plotly.graph_objects as go
-from langchain_core.documents import Document
 from dotenv import load_dotenv
-from transformers import AutoTokenizer
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
-
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from sklearn.manifold import TSNE
+from transformers import AutoTokenizer
 
 load_dotenv()
-MODEL = "ministral-3:14b"
+
+# The tokenizer used for estimating chunk limits
+TOKENIZER_MODEL = "mistralai/Mistral-7B-v0.1"
+DB_NAME = "vectors_db"
 
 
 # read pdf and return the text content
@@ -29,8 +30,7 @@ def read_pdf(file_path: str) -> str:
 
 
 # encode content and return tokens
-def tokens_from_content(content: str) -> list[int]:
-    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
+def tokens_from_content(content: str, tokenizer) -> list[int]:
     tokens = tokenizer.encode(content)
     print(f"\nTokens: {tokens[:10]}...\n")
     return tokens
@@ -42,12 +42,12 @@ def create_document(content: str) -> Document:
 
 
 # split documents into chunks
-def split_documents(documents: list[Document]) -> list[Document]:
-    splitter = RecursiveCharacterTextSplitter(
+def split_documents(documents: list[Document], tokenizer) -> list[Document]:
+    splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
+        tokenizer,
         separators=["\n\n", "\n", ".", " "],
-        chunk_size=1000,
-        chunk_overlap=200,
-        length_function=len,
+        chunk_size=300,  # Now measured in tokens (roughly 1000-1200 characters)
+        chunk_overlap=50,  # Now measured in tokens
     )
     chunks: list[Document] = splitter.split_documents(documents)
     print(f"number of chunks : {len(chunks)}")
@@ -56,23 +56,34 @@ def split_documents(documents: list[Document]) -> list[Document]:
 
 # create embeddings for MODEL
 def create_embeddings() -> HuggingFaceEmbeddings:
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    return embeddings
+    # fast, lightweight, good general-purpose (384 dims)
+    embeddings1 = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    # higher accuracy, slower (768 dims)
+    embeddings2 = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
+    # print dimension
+    sample_embedding = embeddings1.embed_query("test")
+    print(f"dimension all-MiniLM-L6-v2: {len(sample_embedding)}")
+    sample_embedding = embeddings2.embed_query("test")
+    print(f"dimension all-mpnet-base-v2: {len(sample_embedding)}")
+    # print few embeddings from embeddings1
+    sample_embeddings: list[list[float]] = embeddings1.embed_documents(["test"])
+    print(f"sample embeddings all-MiniLM-L6-v2: {sample_embeddings[0][:10]}...")
+    # print few embeddings from embeddings2
+    sample_embeddings = embeddings2.embed_documents(["test"])
+    print(f"sample embeddings all-mpnet-base-v2: {sample_embeddings[0][:10]}...")
+    # return embedding. manually switch
+    return embeddings2
 
 
 # save vectors in chromadb
-def save_vectors(
-    chunks: list[Document], embeddings_model: HuggingFaceEmbeddings, persist_dir: str
-) -> Chroma:
-    vectorstore = Chroma.from_documents(
-        chunks, embeddings_model, persist_directory=persist_dir
-    )
+def save_vectors(chunks: list[Document], embeddings_model: HuggingFaceEmbeddings, persist_dir: str) -> Chroma:
     # clean previous data
-    vectorstore.delete_collection()
-    print("vectors deleted from {persist_dir}")
-    vectorstore = Chroma.from_documents(
-        chunks, embeddings_model, persist_directory=persist_dir
-    )
+    import shutil
+
+    shutil.rmtree(persist_dir, ignore_errors=True)
+    print(f"vectors deleted from {persist_dir}")
+
+    vectorstore = Chroma.from_documents(chunks, embeddings_model, persist_directory=persist_dir)
     print(f"vectors saved in {persist_dir}")
 
     # print sample vector and dimension
@@ -130,31 +141,38 @@ if __name__ == "__main__":
     print(f"reading pdf:{pdf_path} - START")
     content = read_pdf(pdf_path)
     print(f"reading pdf:{pdf_path} - END")
+    print("\n\n\n")
+
+    print("loading tokenizer - START")
+    tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_MODEL)
+    print("loading tokenizer - END")
+    print("\n\n\n")
 
     print("tokenizing content from pdf - START")
-    tokens = tokens_from_content(content=content)
+    tokens = tokens_from_content(content=content, tokenizer=tokenizer)
     print("tokenizing content from pdf - END")
+    print("\n\n\n")
 
     print("creating document from content - START")
     doc = create_document(content=content)
     print("creating document from content - END")
+    print("\n\n\n")
 
     print("splitting documents - START")
-    chunks = split_documents(documents=[doc])
+    chunks = split_documents(documents=[doc], tokenizer=tokenizer)
     print("splitting documents - END")
+    print("\n\n\n")
 
     print("creating embeddings for MODEL - START")
     embeddings_model = create_embeddings()
     print("creating embeddings for MODEL - END")
+    print("\n\n\n")
 
     print("saving vectors in chromadb - START")
-    vectorstore = save_vectors(
-        chunks=chunks, embeddings_model=embeddings_model, persist_dir="chroma_db"
-    )
+    vectorstore = save_vectors(chunks=chunks, embeddings_model=embeddings_model, persist_dir=DB_NAME)
     print("saving vectors in chromadb - END")
-
-    print("visualizing vectors - START")
-    visualize_vectors(vectorstore=vectorstore)
-    print("visualizing vectors - END")
-
     print("\n\n\n")
+
+    # print("visualizing vectors - START")
+    # visualize_vectors(vectorstore=vectorstore)
+    # print("visualizing vectors - END")
