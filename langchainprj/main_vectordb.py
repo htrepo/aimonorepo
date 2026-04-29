@@ -16,17 +16,13 @@ TOKENIZER_MODEL = "mistralai/Mistral-7B-v0.1"
 DB_NAME = "vectors_db"
 
 
-# read pdf and return the text content
-def read_pdf(file_path: str) -> str:
+# read pdf and return the list of documents (one per page)
+def read_pdf(file_path: str) -> list[Document]:
     print(f"Loading PDF from: {file_path}")
     loader = PyPDFLoader(file_path)
     pages = loader.load()
-    print(f"Total pages: {len(pages)}\n")
-    # iterate pages and create content str
-    content = ""
-    for page in pages:
-        content += page.page_content
-    return content
+    print(f"Total pages loaded: {len(pages)}")
+    return pages
 
 
 # encode content and return tokens
@@ -46,8 +42,8 @@ def split_documents(documents: list[Document], tokenizer) -> list[Document]:
     splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
         tokenizer,
         separators=["\n\n", "\n", ".", " "],
-        chunk_size=300,  # Now measured in tokens (roughly 1000-1200 characters)
-        chunk_overlap=50,  # Now measured in tokens
+        chunk_size=500,  # Increased for better context
+        chunk_overlap=100,  # Increased overlap
     )
     chunks: list[Document] = splitter.split_documents(documents)
     print(f"number of chunks : {len(chunks)}")
@@ -138,29 +134,17 @@ def visualize_vectors(vectorstore: Chroma):
 
 if __name__ == "__main__":
     pdf_path = "mlops-and-trustworthy-ai-for-data-leaders.pdf"
-    print(f"reading pdf:{pdf_path} - START")
-    content = read_pdf(pdf_path)
-    print(f"reading pdf:{pdf_path} - END")
-    print("\n\n\n")
+    print("reading pdf - START")
+    pages = read_pdf(pdf_path)
+    print("reading pdf - END\n")
 
     print("loading tokenizer - START")
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_MODEL)
-    print("loading tokenizer - END")
-    print("\n\n\n")
-
-    print("tokenizing content from pdf - START")
-    tokens = tokens_from_content(content=content, tokenizer=tokenizer)
-    print("tokenizing content from pdf - END")
-    print("\n\n\n")
-
-    print("creating document from content - START")
-    doc = create_document(content=content)
-    print("creating document from content - END")
-    print("\n\n\n")
+    print("loading tokenizer - END\n")
 
     print("splitting documents - START")
-    chunks = split_documents(documents=[doc], tokenizer=tokenizer)
-    print("splitting documents - END")
+    chunks = split_documents(documents=pages, tokenizer=tokenizer)
+    print("splitting documents - END\n")
     print("\n\n\n")
 
     print("creating embeddings for MODEL - START")
