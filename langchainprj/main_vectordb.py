@@ -140,20 +140,28 @@ def visualize_vectors(vectorstore: Chroma):
 
 
 if __name__ == "__main__":
-    pdf_path_1 = "mlops-and-trustworthy-ai-for-data-leaders.pdf"
-    pdf_path_2 = "LeadershipintheAIEra-Navigatingandshapingthefutureoforganizationalguidance.pdf"
-    print("reading pdf - START")
-    pages_1 = read_pdf(pdf_path_1)
-    pages_2 = read_pdf(pdf_path_2)
-    pages = pages_1 + pages_2
-    print("reading pdf - END\n")
+    import os
+    docs_dir = "documents"
+    pdf_files = [f for f in os.listdir(docs_dir) if f.endswith(".pdf")]
+    txt_files = [f for f in os.listdir(docs_dir) if f.endswith(".txt")]
 
-    seed_data = []
-    with open("maryann_seed_data.txt", "r") as f:
-        seed_data = f.read().splitlines()
-    seed_documents = create_documents_from_list(seed_data)
-    print("seed data: ", seed_data)
-    print("seed data END\n")
+    print("reading documents - START")
+    pages = []
+    for pdf in pdf_files:
+        pages.extend(read_pdf(os.path.join(docs_dir, pdf)))
+    
+    seed_documents = []
+    for txt in txt_files:
+        with open(os.path.join(docs_dir, txt), "r") as f:
+            lines = f.read().splitlines()
+            for line in lines:
+                if line.strip():
+                    doc = create_document(line)
+                    doc.metadata = {"source": os.path.join(docs_dir, txt), "page": 0}
+                    seed_documents.append(doc)
+
+    print(f"Loaded {len(pages)} PDF pages and {len(seed_documents)} text documents.")
+    print("reading documents - END\n")
 
     print("loading tokenizer - START")
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_MODEL)

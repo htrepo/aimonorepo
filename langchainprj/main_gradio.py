@@ -3,10 +3,10 @@ from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # MODEL = "gpt-4o-mini"
-MODEL = "gpt-5.4-nano"
+MODEL = "gemini-2.5-flash-lite"
 DB_NAME = "vectors_db"
 load_dotenv()
 
@@ -14,7 +14,7 @@ load_dotenv()
 embeddings_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
 vectorstore = Chroma(persist_directory=DB_NAME, embedding_function=embeddings_model)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
-llm = ChatOpenAI(model=MODEL, temperature=0)
+llm = ChatGoogleGenerativeAI(model=MODEL, temperature=0)
 
 
 def process_interaction(message, history):
@@ -104,7 +104,7 @@ def process_interaction(message, history):
     # Generic RAG prompt: context first, then question, then a simple fallback rule.
     # No person-specific rules needed - the LLM synthesises information from the context naturally.
     final_prompt = (
-        "Context information is below.\n"
+        "Be concise. Answer in 1-2 sentences maximum.\n"
         "---------------------\n"
         f"{context}\n"
         "---------------------\n"
