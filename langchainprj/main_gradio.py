@@ -3,9 +3,10 @@ from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
-MODEL = "ministral-3:14b"
+# MODEL = "gpt-4o-mini"
+MODEL = "gpt-5.4-nano"
 DB_NAME = "vectors_db"
 load_dotenv()
 
@@ -13,7 +14,7 @@ load_dotenv()
 embeddings_model = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
 vectorstore = Chroma(persist_directory=DB_NAME, embedding_function=embeddings_model)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
-llm = ChatOllama(model=MODEL, temperature=0)
+llm = ChatOpenAI(model=MODEL, temperature=0)
 
 
 def process_interaction(message, history):

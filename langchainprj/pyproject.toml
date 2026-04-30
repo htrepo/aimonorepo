@@ -19,6 +19,7 @@ dependencies = [
     "langchain-openai>=1.2.1",
     "numpy>=1.24.0",
     "plotly>=5.14.3",
+    "pydantic>=2.13.3",
     "pypdf>=6.10.2",
     "python-dotenv>=1.0.0",
     "ruff>=0.15.12",
