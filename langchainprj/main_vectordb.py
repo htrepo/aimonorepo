@@ -25,6 +25,13 @@ def read_pdf(file_path: str) -> list[Document]:
     return pages
 
 
+def create_documents_from_list(contents: list[str]) -> list[Document]:
+    documents = []
+    for content in contents:
+        documents.append(create_document(content))
+    return documents
+
+
 # encode content and return tokens
 def tokens_from_content(content: str, tokenizer) -> list[int]:
     tokens = tokenizer.encode(content)
@@ -133,17 +140,28 @@ def visualize_vectors(vectorstore: Chroma):
 
 
 if __name__ == "__main__":
-    pdf_path = "mlops-and-trustworthy-ai-for-data-leaders.pdf"
+    pdf_path_1 = "mlops-and-trustworthy-ai-for-data-leaders.pdf"
+    pdf_path_2 = "LeadershipintheAIEra-Navigatingandshapingthefutureoforganizationalguidance.pdf"
     print("reading pdf - START")
-    pages = read_pdf(pdf_path)
+    pages_1 = read_pdf(pdf_path_1)
+    pages_2 = read_pdf(pdf_path_2)
+    pages = pages_1 + pages_2
     print("reading pdf - END\n")
+
+    seed_data = []
+    with open("maryann_seed_data.txt", "r") as f:
+        seed_data = f.read().splitlines()
+    seed_documents = create_documents_from_list(seed_data)
+    print("seed data: ", seed_data)
+    print("seed data END\n")
 
     print("loading tokenizer - START")
     tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_MODEL)
     print("loading tokenizer - END\n")
 
     print("splitting documents - START")
-    chunks = split_documents(documents=pages, tokenizer=tokenizer)
+    documents = pages + seed_documents
+    chunks = split_documents(documents=documents, tokenizer=tokenizer)
     print("splitting documents - END\n")
     print("\n\n\n")
 

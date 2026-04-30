@@ -218,3 +218,5 @@ outputs/
 
 *.bak
 *.orig
+
+vector_db/
