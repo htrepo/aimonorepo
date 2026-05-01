@@ -1,19 +1,20 @@
-import numpy as np
-import plotly.graph_objects as go
 from dotenv import load_dotenv
+from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from sklearn.manifold import TSNE
 from transformers import AutoTokenizer
+
+from _proj_embedding import embeddings_model
+from _proj_vector_db import DB_NAME
 
 load_dotenv()
 
 # The tokenizer used for estimating chunk limits
 TOKENIZER_MODEL = "mistralai/Mistral-7B-v0.1"
-DB_NAME = "vectors_db"
+CHUNK_SIZE = 300
+CHUNK_OVERLAP = 60
 
 
 # read pdf and return the list of documents (one per page)
@@ -23,20 +24,6 @@ def read_pdf(file_path: str) -> list[Document]:
     pages = loader.load()
     print(f"Total pages loaded: {len(pages)}")
     return pages
-
-
-def create_documents_from_list(contents: list[str]) -> list[Document]:
-    documents = []
-    for content in contents:
-        documents.append(create_document(content))
-    return documents
-
-
-# encode content and return tokens
-def tokens_from_content(content: str, tokenizer) -> list[int]:
-    tokens = tokenizer.encode(content)
-    print(f"\nTokens: {tokens[:10]}...\n")
-    return tokens
 
 
 # create Document type from content
@@ -49,33 +36,17 @@ def split_documents(documents: list[Document], tokenizer) -> list[Document]:
     splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
         tokenizer,
         separators=["\n\n", "\n", ".", " "],
-        chunk_size=500,  # Increased for better context
-        chunk_overlap=100,  # Increased overlap
+        chunk_size=CHUNK_SIZE,  # Increased for better context
+        chunk_overlap=CHUNK_OVERLAP,  # Increased overlap
     )
     chunks: list[Document] = splitter.split_documents(documents)
     print(f"number of chunks : {len(chunks)}")
     return chunks
 
 
-# create embeddings for MODEL
-def create_embeddings() -> HuggingFaceEmbeddings:
-    # fast, lightweight, good general-purpose (384 dims)
-    embeddings1 = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    # higher accuracy, slower (768 dims)
-    embeddings2 = HuggingFaceEmbeddings(model_name="all-mpnet-base-v2")
-    # print dimension
-    sample_embedding = embeddings1.embed_query("test")
-    print(f"dimension all-MiniLM-L6-v2: {len(sample_embedding)}")
-    sample_embedding = embeddings2.embed_query("test")
-    print(f"dimension all-mpnet-base-v2: {len(sample_embedding)}")
-    # print few embeddings from embeddings1
-    sample_embeddings: list[list[float]] = embeddings1.embed_documents(["test"])
-    print(f"sample embeddings all-MiniLM-L6-v2: {sample_embeddings[0][:10]}...")
-    # print few embeddings from embeddings2
-    sample_embeddings = embeddings2.embed_documents(["test"])
-    print(f"sample embeddings all-mpnet-base-v2: {sample_embeddings[0][:10]}...")
-    # return embedding. manually switch
-    return embeddings2
+# get embeddings for MODEL
+def get_embeddings_model() -> HuggingFaceEmbeddings:
+    return embeddings_model
 
 
 # save vectors in chromadb
@@ -100,47 +71,9 @@ def save_vectors(chunks: list[Document], embeddings_model: HuggingFaceEmbeddings
     return vectorstore
 
 
-# visualize vectors using plotly
-def visualize_vectors(vectorstore: Chroma):
-    collection = vectorstore._collection
-    coll_data = collection.get(include=["embeddings", "documents", "metadatas"])
-    vectors = np.array(coll_data["embeddings"])
-    # print useful information
-    metadata = coll_data["metadatas"]
-    documents = coll_data["documents"]
-    print(f"metadata : {metadata[0]}")
-    print(f"document : {documents[0]}")
-    # Reduce dimensionality using t-SNE - simple parameters
-    tsne = TSNE(n_components=3, random_state=42, perplexity=10)
-    vectors_3d = tsne.fit_transform(vectors)
-    fig = go.Figure(
-        data=go.Scatter3d(
-            x=vectors_3d[:, 0],
-            y=vectors_3d[:, 1],
-            z=vectors_3d[:, 2],
-            mode="markers",
-            marker=dict(
-                colorscale="Viridis",  # or 'Plotly3', 'Hot', 'Jet', etc.
-                size=5,
-                line=dict(width=1, color="Black"),
-            ),
-            text=documents,  # hover text
-            hoverinfo="text",
-        )
-    )
-    fig.update_layout(
-        title="3D t-SNE Visualization of Document Embeddings",
-        scene=dict(
-            xaxis_title="t-SNE Dimension 1",
-            yaxis_title="t-SNE Dimension 2",
-            zaxis_title="t-SNE Dimension 3",
-        ),
-    )
-    fig.show()
-
-
 if __name__ == "__main__":
     import os
+
     docs_dir = "documents"
     pdf_files = [f for f in os.listdir(docs_dir) if f.endswith(".pdf")]
     txt_files = [f for f in os.listdir(docs_dir) if f.endswith(".txt")]
@@ -149,7 +82,7 @@ if __name__ == "__main__":
     pages = []
     for pdf in pdf_files:
         pages.extend(read_pdf(os.path.join(docs_dir, pdf)))
-    
+
     seed_documents = []
     for txt in txt_files:
         with open(os.path.join(docs_dir, txt), "r") as f:
@@ -173,16 +106,12 @@ if __name__ == "__main__":
     print("splitting documents - END\n")
     print("\n\n\n")
 
-    print("creating embeddings for MODEL - START")
-    embeddings_model = create_embeddings()
-    print("creating embeddings for MODEL - END")
+    print("getting embeddings for MODEL - START")
+    embeddings_model = get_embeddings_model()
+    print("getting embeddings for MODEL - END")
     print("\n\n\n")
 
     print("saving vectors in chromadb - START")
     vectorstore = save_vectors(chunks=chunks, embeddings_model=embeddings_model, persist_dir=DB_NAME)
     print("saving vectors in chromadb - END")
     print("\n\n\n")
-
-    # print("visualizing vectors - START")
-    # visualize_vectors(vectorstore=vectorstore)
-    # print("visualizing vectors - END")

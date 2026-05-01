@@ -235,34 +235,6 @@ To run a single test and see full feedback:
 & .venv/Scripts/python.exe eval/main_eval.py 0
 ```
 
-## Running Evaluations in Code
-
-### Retrieval Evaluation
-```python
-from eval.main_eval import evaluate_all_retrieval, aggregate_retrieval_results
-
-results = []
-for test, result, progress in evaluate_all_retrieval():
-    print(f"[{progress:.0%}] {test.question[:50]} | MRR={result.mrr:.3f}")
-    results.append((test, result))
-
-summary = aggregate_retrieval_results(results)
-print(summary)
-```
-
-### Generation Evaluation
-```python
-from eval.main_eval import evaluate_all_answers, aggregate_answer_results
-
-results = []
-for test, result, progress in evaluate_all_answers():
-    print(f"[{progress:.0%}] Accuracy={result.accuracy:.1f} | {test.question[:50]}")
-    results.append((test, result))
-
-summary = aggregate_answer_results(results)
-print(summary)
-```
-
 ## Diagnosing Problems
 
 When the system underperforms, compare retrieval and answer scores to locate the bottleneck:

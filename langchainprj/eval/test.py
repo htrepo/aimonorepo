@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 from pydantic import BaseModel, Field
 
 TEST_FILE = str(Path(__file__).parent / "tests.jsonl")
@@ -13,8 +14,7 @@ class TestQuestion(BaseModel):
     reference_answer: str = Field(description="The reference answer for this question")
     category: str = Field(
         description=(
-            "Question category: direct_fact | temporal | comparative | numerical | "
-            "relationship | spanning | holistic"
+            "Question category: direct_fact | temporal | comparative | numerical | relationship | spanning | holistic"
         )
     )
 
