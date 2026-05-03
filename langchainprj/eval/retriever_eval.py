@@ -2,9 +2,9 @@ import math
 
 from pydantic import BaseModel, Field
 
+from eval.test import TestQuestion
 from src._proj_rag import RETRIEVAL_K
 from src._proj_vector_db import get_retriever
-from eval.test import TestQuestion
 
 # ---------------------------------------------------------------------------
 # Data models

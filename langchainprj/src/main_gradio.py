@@ -2,12 +2,9 @@ import gradio as gr
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
 
-from _get_llm import get_llm
 from _proj_rag import run_rag_pipeline
 
 load_dotenv()
-
-llm = get_llm()
 
 
 def process_interaction(message, history):

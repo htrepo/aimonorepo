@@ -6,7 +6,7 @@ load_dotenv()
 
 # Centralized model configuration
 # DEFAULT_MODEL = "gemini-2.5-flash-lite"
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-4.1-nano"
 
 _llm = None
 

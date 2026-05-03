@@ -4,8 +4,8 @@ import re
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field
 
-from src._proj_rag import get_llm, run_rag_pipeline
 from eval.test import TestQuestion
+from src._proj_rag import get_llm, run_rag_pipeline
 
 # ---------------------------------------------------------------------------
 # Data models
