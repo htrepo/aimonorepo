@@ -45,5 +45,8 @@ TRAIN_DATA_FILE: Path = MODEL_FILES_BASE_DIR / "train_data.parquet"
 VAL_DATA_FILE: Path = MODEL_FILES_BASE_DIR / "val_data.parquet"
 TEST_DATA_FILE: Path = MODEL_FILES_BASE_DIR / "test_data.parquet"
 
+MODEL_INPUT_JSONL_FILES_BASE_DIR: Path = DATA_DIR / "model_files" / "batchinput"
+MODEL_OUTPUT_JSONL_FILES_BASE_DIR: Path = DATA_DIR / "model_files" / "batchoutput"
+
 # links for the dataset, replace with the ones from orig_zipped_files
 links = {name: f"meta_{name}.jsonl.gz" for name in dataset_names}

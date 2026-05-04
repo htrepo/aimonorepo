@@ -120,7 +120,7 @@ async def main():
 
     # 4. Statistics
     success_count = sum(1 for r in results if r["status"] == "success")
-    print(f"\nProcessing complete!")
+    print("\nProcessing complete!")
     print(f"Successfully processed: {success_count}/{len(results)}")
     print(f"Total time: {end_total - start_total:.2f}s")
     print(f"Results saved to {OUTPUT_FILE}")
