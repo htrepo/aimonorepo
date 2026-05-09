@@ -121,8 +121,6 @@ nosetests.xml
 
 # =========================
 
-.vscode/
-**/.vscode/
 .idea/
 **/.idea/
 
@@ -160,12 +158,8 @@ temp/
 
 # =========================
 
-data/
-**/data/
-artifacts/
-**/artifacts/
-outputs/
-**/outputs/
+# artifacts/
+# **/artifacts/
 
 # =========================
 
@@ -220,3 +214,5 @@ outputs/
 *.orig
 
 vector_db/
+
+heavydata/

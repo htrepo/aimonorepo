@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "/Users/Shared/github/.venv/bin/python",
+
+  "editor.fontSize": 10,
+  "notebook.output.fontSize": 16,
+ 
+}
